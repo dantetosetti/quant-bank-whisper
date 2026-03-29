@@ -9,6 +9,7 @@ import MarketResearch from "@/components/MarketResearch";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BarChart3, Brain, Users, Landmark, Globe, ArrowRight } from "lucide-react";
+import peersweepLogo from "@/assets/peersweep-logo.png";
 
 const Index = () => {
   const [subjectBank, setSubjectBank] = useState<BankInfo[]>([]);
@@ -30,7 +31,7 @@ const Index = () => {
         <header className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-10">
           <div className="container flex items-center justify-between h-14">
             <div className="flex items-center gap-3">
-              <Landmark className="h-5 w-5 text-accent" />
+              <img src={peersweepLogo} alt="PeerSweep" className="h-6 w-6" />
               <span className="font-display text-lg">Peer<span className="text-accent">Sweep</span></span>
             </div>
             <div className="flex items-center gap-4">
@@ -102,7 +103,7 @@ const Index = () => {
         <div className="container max-w-2xl py-16">
           <div className="text-center mb-12 animate-fade-in">
             <div className="flex items-center justify-center gap-2 mb-4">
-              <Landmark className="h-8 w-8 text-primary" />
+              <img src={peersweepLogo} alt="PeerSweep" className="h-12 w-12" />
             </div>
             <h1 className="font-display text-4xl md:text-5xl text-foreground mb-2">
               Peer<span className="text-accent">Sweep</span>

@@ -7,22 +7,22 @@
 @layer base {
   :root {
     --background: 210 20% 98%;
-    --foreground: 192 80% 10%;
+    --foreground: 184 100% 10%;
 
     --card: 0 0% 100%;
-    --card-foreground: 192 80% 10%;
+    --card-foreground: 184 100% 10%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 192 80% 10%;
+    --popover-foreground: 184 100% 10%;
 
-    --primary: 192 80% 20%;
+    --primary: 184 100% 23%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 190 25% 92%;
-    --secondary-foreground: 192 80% 10%;
+    --secondary: 184 25% 92%;
+    --secondary-foreground: 184 100% 10%;
 
-    --muted: 190 20% 96%;
-    --muted-foreground: 192 15% 45%;
+    --muted: 184 20% 96%;
+    --muted-foreground: 184 15% 45%;
 
     --accent: 24 95% 50%;
     --accent-foreground: 0 0% 100%;
@@ -36,29 +36,29 @@
     --success: 172 65% 35%;
     --success-foreground: 0 0% 100%;
 
-    --border: 192 20% 88%;
-    --input: 192 20% 88%;
-    --ring: 192 80% 20%;
+    --border: 184 20% 88%;
+    --input: 184 20% 88%;
+    --ring: 184 100% 23%;
 
     --radius: 0.5rem;
 
-    --sidebar-background: 192 80% 12%;
-    --sidebar-foreground: 190 25% 90%;
+    --sidebar-background: 184 100% 12%;
+    --sidebar-foreground: 184 25% 90%;
     --sidebar-primary: 0 0% 100%;
-    --sidebar-primary-foreground: 192 80% 12%;
-    --sidebar-accent: 192 70% 18%;
-    --sidebar-accent-foreground: 190 25% 90%;
-    --sidebar-border: 192 60% 22%;
+    --sidebar-primary-foreground: 184 100% 12%;
+    --sidebar-accent: 184 90% 18%;
+    --sidebar-accent-foreground: 184 25% 90%;
+    --sidebar-border: 184 80% 22%;
     --sidebar-ring: 24 95% 50%;
 
     --chart-positive: 172 65% 35%;
     --chart-negative: 0 72% 51%;
-    --chart-neutral: 192 15% 45%;
-    --chart-1: 192 80% 20%;
+    --chart-neutral: 184 15% 45%;
+    --chart-1: 184 100% 23%;
     --chart-2: 24 95% 50%;
     --chart-3: 172 65% 35%;
     --chart-4: 0 0% 15%;
-    --chart-5: 190 50% 45%;
+    --chart-5: 184 50% 45%;
 
     --font-display: 'DM Serif Display', serif;
     --font-body: 'Inter', sans-serif;
