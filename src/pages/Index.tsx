@@ -104,9 +104,12 @@ const Index = () => {
             <div className="flex items-center justify-center gap-2 mb-4">
               <Landmark className="h-8 w-8 text-primary" />
             </div>
-            <h1 className="font-display text-4xl md:text-5xl text-foreground mb-3">
-              UBPR Intelligence
+            <h1 className="font-display text-4xl md:text-5xl text-foreground mb-2">
+              Peer<span className="text-accent">Sweep</span>
             </h1>
+            <p className="text-accent font-semibold tracking-wide uppercase text-sm mb-3">
+              Actionable Market Intel
+            </p>
             <p className="text-muted-foreground text-lg max-w-md mx-auto">
               AI-powered performance analytics for community banks. Regulator-aligned. Explainable. Fast.
             </p>
