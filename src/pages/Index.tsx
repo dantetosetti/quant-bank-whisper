@@ -103,7 +103,7 @@ const Index = () => {
         <div className="container max-w-2xl py-16">
           <div className="text-center mb-12 animate-fade-in">
             <div className="flex items-center justify-center gap-2 mb-4">
-              <Landmark className="h-8 w-8 text-primary" />
+              <img src={peersweepLogo} alt="PeerSweep" className="h-12 w-12" />
             </div>
             <h1 className="font-display text-4xl md:text-5xl text-foreground mb-2">
               Peer<span className="text-accent">Sweep</span>
