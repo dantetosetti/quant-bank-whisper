@@ -31,13 +31,15 @@ const Index = () => {
     
     setIsLoading(true);
     try {
-      const ubprData = await fetchUBPR(selectedBank.rssd, selectedBank.name);
-      setMetrics(ubprData);
-      setDataSource("live");
+      const result = await fetchUBPR(selectedBank.rssd, selectedBank.name);
+      setMetrics(result.metrics);
+      setDataSource(result.source === "cache" ? "live" : "live");
       setShowDashboard(true);
       toast({
-        title: "Live FFIEC Data Loaded",
-        description: `UBPR data for ${selectedBank.name} retrieved successfully.`,
+        title: result.source === "cache" ? "Cached FFIEC Data Loaded" : "Live FFIEC Data Loaded",
+        description: result.source === "cache" 
+          ? `Using cached data for ${selectedBank.name}.`
+          : `UBPR data for ${selectedBank.name} retrieved from FFIEC CDR.`,
       });
     } catch (error) {
       console.error("Failed to fetch live UBPR data:", error);
