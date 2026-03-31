@@ -121,6 +121,10 @@ const Index = () => {
             <TabsContent value="market">
               <MarketResearch bank={selectedBank} peerBanks={peerBanks} />
             </TabsContent>
+
+            <TabsContent value="bulk">
+              <BulkDownloadPanel />
+            </TabsContent>
           </Tabs>
         </main>
       </div>
