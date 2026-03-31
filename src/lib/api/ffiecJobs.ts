@@ -21,7 +21,10 @@ const MAX_POLL_ATTEMPTS = 120;
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-export const pollFFIECJob = async (jobId: string): Promise<FFIECJobStatusResponse> => {
+export const pollFFIECJob = async (
+  jobId: string,
+  onStreamingUrl?: (url: string) => void,
+): Promise<FFIECJobStatusResponse> => {
   for (let attempt = 0; attempt < MAX_POLL_ATTEMPTS; attempt += 1) {
     const { data, error } = await supabase.functions.invoke<FFIECJobStatusResponse>('ffiec-job-status', {
       body: { jobId },
@@ -33,6 +36,10 @@ export const pollFFIECJob = async (jobId: string): Promise<FFIECJobStatusRespons
 
     if (!data?.success) {
       throw new Error(data?.error || 'Failed to check FFIEC job status');
+    }
+
+    if (data.streamingUrl && onStreamingUrl) {
+      onStreamingUrl(data.streamingUrl);
     }
 
     if (data.status === 'completed' || data.status === 'failed') {
