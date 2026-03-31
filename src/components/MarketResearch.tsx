@@ -9,7 +9,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Globe, ExternalLink, Loader2, TrendingUp, Building2, Landmark } from "lucide-react";
+import { Globe, ExternalLink, Loader2, Landmark, Newspaper, Share2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { fetchMarketIntel, type MarketIntelData } from "@/lib/api/marketIntel";
 import type { BankInfo } from "@/data/bankData";
@@ -18,13 +18,6 @@ interface MarketResearchProps {
   bank: BankInfo;
   peerBanks: BankInfo[];
 }
-
-const formatCurrency = (val: number) => {
-  if (val >= 1e9) return `$${(val / 1e9).toFixed(1)}B`;
-  if (val >= 1e6) return `$${(val / 1e6).toFixed(1)}M`;
-  if (val >= 1e3) return `$${(val / 1e3).toFixed(0)}K`;
-  return `$${val}`;
-};
 
 const MarketResearch = ({ bank, peerBanks }: MarketResearchProps) => {
   const [isLoading, setIsLoading] = useState(false);
@@ -55,14 +48,14 @@ const MarketResearch = ({ bank, peerBanks }: MarketResearchProps) => {
           <Globe className="h-5 w-5 text-primary" />
           <h3 className="font-display text-lg text-foreground">Market Research</h3>
         </div>
-        <p className="text-sm text-muted-foreground">Competitive rate intelligence for {bank.name}</p>
+        <p className="text-sm text-muted-foreground">Competitive intelligence for {bank.name}</p>
       </div>
 
       {/* Fetch button */}
       {!data && (
         <Card className="p-6 text-center space-y-4">
           <p className="text-sm text-muted-foreground">
-            Retrieve live market intelligence including competitor deposit rates, FDIC market share data, and peer bank pricing.
+            Scrape peer bank websites for deposit rates, search local news coverage, and scan social media for competitor marketing activity.
           </p>
           <Button onClick={handleFetch} disabled={isLoading} className="gap-2">
             {isLoading ? (
@@ -90,95 +83,8 @@ const MarketResearch = ({ bank, peerBanks }: MarketResearchProps) => {
       {/* Results */}
       {data && (
         <div className="space-y-8">
-          {/* Competitor Rates */}
-          {data.competitorRates?.length > 0 && (
-            <section className="space-y-3">
-              <div className="flex items-center gap-2">
-                <TrendingUp className="h-4 w-4 text-accent" />
-                <h4 className="font-semibold text-sm">Competitor Deposit Rates</h4>
-              </div>
-              <Card className="overflow-hidden overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="bg-primary/5">
-                      <TableHead className="font-semibold">Institution</TableHead>
-                      <TableHead className="font-semibold">Product</TableHead>
-                      <TableHead className="text-right font-semibold">APY (%)</TableHead>
-                      <TableHead className="font-semibold">Source</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {data.competitorRates.map((r, i) => (
-                      <TableRow key={i}>
-                        <TableCell className="font-medium text-sm">{r.institution}</TableCell>
-                        <TableCell className="text-sm text-muted-foreground">{r.product}</TableCell>
-                        <TableCell className="text-right tabular-nums font-semibold text-accent">{r.rate}</TableCell>
-                        <TableCell className="text-xs text-muted-foreground">
-                          <span className="flex items-center gap-1">
-                            {r.source}
-                            <ExternalLink className="h-3 w-3" />
-                          </span>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </Card>
-            </section>
-          )}
-
-          {/* FDIC Market Share */}
-          {data.fdicMarketShare && (
-            <section className="space-y-3">
-              <div className="flex items-center gap-2">
-                <Building2 className="h-4 w-4 text-accent" />
-                <h4 className="font-semibold text-sm">FDIC Summary of Deposits — Market Share</h4>
-              </div>
-              <div className="grid grid-cols-3 gap-4">
-                <Card className="p-4 text-center">
-                  <p className="text-2xl font-bold text-accent tabular-nums">{data.fdicMarketShare.marketSharePct}%</p>
-                  <p className="text-xs text-muted-foreground mt-1">Market Share</p>
-                </Card>
-                <Card className="p-4 text-center">
-                  <p className="text-2xl font-bold text-foreground tabular-nums">{formatCurrency(data.fdicMarketShare.totalDeposits)}</p>
-                  <p className="text-xs text-muted-foreground mt-1">Total Deposits</p>
-                </Card>
-                <Card className="p-4 text-center">
-                  <p className="text-2xl font-bold text-foreground tabular-nums">{data.fdicMarketShare.branches}</p>
-                  <p className="text-xs text-muted-foreground mt-1">Branches</p>
-                </Card>
-              </div>
-              <p className="text-xs text-muted-foreground">Market Area: {data.fdicMarketShare.marketArea}</p>
-
-              {data.fdicMarketShare.competitors?.length > 0 && (
-                <Card className="overflow-hidden overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow className="bg-primary/5">
-                        <TableHead className="font-semibold">Competitor</TableHead>
-                        <TableHead className="text-right font-semibold">Deposits</TableHead>
-                        <TableHead className="text-right font-semibold">Branches</TableHead>
-                        <TableHead className="text-right font-semibold">Market Share</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {data.fdicMarketShare.competitors.map((c, i) => (
-                        <TableRow key={i}>
-                          <TableCell className="font-medium text-sm">{c.name}</TableCell>
-                          <TableCell className="text-right tabular-nums text-sm">{formatCurrency(c.deposits)}</TableCell>
-                          <TableCell className="text-right tabular-nums text-sm">{c.branches}</TableCell>
-                          <TableCell className="text-right tabular-nums text-sm font-semibold">{c.marketSharePct}%</TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </Card>
-              )}
-            </section>
-          )}
-
           {/* Peer Bank Rates */}
-          {data.peerBankRates?.length > 0 && (
+          {data.peerBankRates && data.peerBankRates.length > 0 && (
             <section className="space-y-3">
               <div className="flex items-center gap-2">
                 <Landmark className="h-4 w-4 text-accent" />
@@ -205,6 +111,85 @@ const MarketResearch = ({ bank, peerBanks }: MarketResearchProps) => {
                             {r.source}
                             <ExternalLink className="h-3 w-3" />
                           </span>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </Card>
+            </section>
+          )}
+
+          {/* Local News */}
+          {data.localNews && data.localNews.length > 0 && (
+            <section className="space-y-3">
+              <div className="flex items-center gap-2">
+                <Newspaper className="h-4 w-4 text-accent" />
+                <h4 className="font-semibold text-sm">Local News & Market Coverage</h4>
+              </div>
+              <div className="space-y-2">
+                {data.localNews.map((item, i) => (
+                  <Card key={i} className="p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="space-y-1 min-w-0">
+                        <h5 className="text-sm font-medium leading-tight">
+                          {item.url ? (
+                            <a href={item.url} target="_blank" rel="noopener noreferrer" className="hover:underline text-primary">
+                              {item.headline}
+                            </a>
+                          ) : item.headline}
+                        </h5>
+                        <p className="text-xs text-muted-foreground">{item.summary}</p>
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                          <span className="font-medium">{item.source}</span>
+                          {item.date && <span>• {item.date}</span>}
+                        </div>
+                      </div>
+                      {item.url && (
+                        <a href={item.url} target="_blank" rel="noopener noreferrer">
+                          <ExternalLink className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                        </a>
+                      )}
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* Social Media */}
+          {data.socialMedia && data.socialMedia.length > 0 && (
+            <section className="space-y-3">
+              <div className="flex items-center gap-2">
+                <Share2 className="h-4 w-4 text-accent" />
+                <h4 className="font-semibold text-sm">Social Media & Marketing Activity</h4>
+              </div>
+              <Card className="overflow-hidden overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-primary/5">
+                      <TableHead className="font-semibold">Bank</TableHead>
+                      <TableHead className="font-semibold">Platform</TableHead>
+                      <TableHead className="text-right font-semibold">Followers</TableHead>
+                      <TableHead className="font-semibold">Recent Promotion</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {data.socialMedia.map((s, i) => (
+                      <TableRow key={i}>
+                        <TableCell className="font-medium text-sm">{s.bankName}</TableCell>
+                        <TableCell className="text-sm">
+                          {s.profileUrl ? (
+                            <a href={s.profileUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-primary hover:underline">
+                              {s.platform} <ExternalLink className="h-3 w-3" />
+                            </a>
+                          ) : s.platform}
+                        </TableCell>
+                        <TableCell className="text-right tabular-nums text-sm">
+                          {s.followers != null ? s.followers.toLocaleString() : '—'}
+                        </TableCell>
+                        <TableCell className="text-sm text-muted-foreground max-w-xs truncate">
+                          {s.recentPromo || '—'}
                         </TableCell>
                       </TableRow>
                     ))}
