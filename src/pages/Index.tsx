@@ -118,9 +118,6 @@ const Index = () => {
               <MarketResearch bank={selectedBank} peerBanks={peerBanks} />
             </TabsContent>
 
-            <TabsContent value="bulk">
-              <BulkDownloadPanel />
-            </TabsContent>
           </Tabs>
         </main>
       </div>
