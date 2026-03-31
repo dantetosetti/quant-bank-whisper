@@ -92,6 +92,39 @@ export type Database = {
         }
         Relationships: []
       }
+      ubpr_data: {
+        Row: {
+          bank_name: string | null
+          created_at: string | null
+          id: string
+          metrics: Json
+          report_date: string
+          rssd: string
+          source_concepts: Json | null
+          updated_at: string | null
+        }
+        Insert: {
+          bank_name?: string | null
+          created_at?: string | null
+          id?: string
+          metrics?: Json
+          report_date: string
+          rssd: string
+          source_concepts?: Json | null
+          updated_at?: string | null
+        }
+        Update: {
+          bank_name?: string | null
+          created_at?: string | null
+          id?: string
+          metrics?: Json
+          report_date?: string
+          rssd?: string
+          source_concepts?: Json | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
