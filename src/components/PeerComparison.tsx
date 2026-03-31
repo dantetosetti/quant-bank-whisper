@@ -63,13 +63,13 @@ const PeerComparison = ({ subjectBank, subjectMetrics, peerBanks }: PeerComparis
             <TableHeader>
               <TableRow className="bg-primary/5">
                 <TableHead className="font-semibold">Metric</TableHead>
-                <TableHead className="text-right font-semibold">{subjectBank.name}</TableHead>
+                <TableHead className="text-right font-semibold bg-primary/10 border-x border-primary/20">{subjectBank.name}</TableHead>
                 {peerData.map(({ bank }) => (
                   <TableHead key={bank.rssd} className="text-right font-semibold text-xs">
                     {bank.name}
                   </TableHead>
                 ))}
-                <TableHead className="text-right font-semibold bg-muted/30">Peer Avg</TableHead>
+                <TableHead className="text-right font-semibold bg-muted/30 border-l-2 border-border">Peer Avg</TableHead>
                 <TableHead className="text-right font-semibold">Variance</TableHead>
               </TableRow>
             </TableHeader>
@@ -82,13 +82,13 @@ const PeerComparison = ({ subjectBank, subjectMetrics, peerBanks }: PeerComparis
                 return (
                   <TableRow key={row.label}>
                     <TableCell className="font-medium text-sm">{row.label}</TableCell>
-                    <TableCell className="text-right tabular-nums text-sm font-semibold">{subjectVal}</TableCell>
+                    <TableCell className="text-right tabular-nums text-sm font-semibold bg-primary/5 border-x border-primary/20">{subjectVal}</TableCell>
                     {peerData.map(({ bank, metrics }) => (
                       <TableCell key={bank.rssd} className="text-right tabular-nums text-sm">
                         {row.getValue(metrics)}
                       </TableCell>
                     ))}
-                    <TableCell className="text-right tabular-nums text-sm bg-muted/30 font-medium">{avg}</TableCell>
+                    <TableCell className="text-right tabular-nums text-sm bg-muted/30 font-medium border-l-2 border-border">{avg}</TableCell>
                     <TableCell className={`text-right tabular-nums text-sm font-semibold ${favorable ? 'text-success' : 'text-destructive'}`}>
                       {variance > 0 ? '+' : ''}{variance}
                     </TableCell>
