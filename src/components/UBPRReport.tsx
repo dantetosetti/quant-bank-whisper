@@ -102,8 +102,7 @@ const ReportCard = ({
   streamingUrl: string | null;
   error: string | null;
   fallbackUrl: string | null;
-  peerBanks?: BankInfo[];
-}) => (
+) => (
   <Card className="p-6">
     <div className="flex flex-col items-center gap-4 text-center">
       {icon}
@@ -111,19 +110,6 @@ const ReportCard = ({
         <h4 className="font-semibold text-foreground">{title}</h4>
         <p className="text-sm text-muted-foreground mt-1">{description}</p>
       </div>
-
-      {peerBanks && peerBanks.length > 0 && (
-        <div className="w-full text-left bg-muted/30 rounded-lg p-3">
-          <p className="text-xs font-medium text-muted-foreground mb-1.5">Peer Banks:</p>
-          <div className="flex flex-wrap gap-1.5">
-            {peerBanks.map((bank) => (
-              <span key={bank.rssd} className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">
-                {bank.name}
-              </span>
-            ))}
-          </div>
-        </div>
-      )}
 
       <Button onClick={onFetch} disabled={isLoading || disabled} className="gap-2">
         {isLoading ? (
