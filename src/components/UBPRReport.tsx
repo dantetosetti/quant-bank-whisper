@@ -44,34 +44,6 @@ const UBPRReport = ({ bankName, rssd }: UBPRReportProps) => {
     }
   };
 
-  const handleFetchPeerReport = async () => {
-    if (!rssd || peerBanks.length === 0) return;
-    setIsLoadingPeer(true);
-    setPeerError(null);
-    setPeerStreamingUrl(null);
-
-    try {
-      const peerRssds = peerBanks.map(b => b.rssd);
-      const peerNames = peerBanks.map(b => b.name);
-      const result = await fetchPeerGroupReport(rssd, bankName, peerRssds, peerNames, (url) => setPeerStreamingUrl(url));
-
-      if (result.pdfUrl) {
-        setPeerPdfUrl(result.pdfUrl);
-        toast({ title: "Peer Group Report Loaded", description: `Custom Peer Group Report for ${bankName} retrieved successfully.` });
-      } else if (result.ffiecUrl) {
-        setPeerFfiecUrl(result.ffiecUrl);
-        setPeerError(result.message || "Could not auto-download the PDF.");
-      }
-    } catch (error) {
-      console.error("Failed to fetch Custom Peer Group Report:", error);
-      setPeerError("Could not retrieve the Custom Peer Group Report. You can access it directly from the FFIEC CDR.");
-      setPeerFfiecUrl("https://cdr.ffiec.gov/public/ManageFacsimiles.aspx");
-    } finally {
-      setIsLoadingPeer(false);
-      setPeerStreamingUrl(null);
-    }
-  };
-
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="border-b-2 border-primary pb-3">
