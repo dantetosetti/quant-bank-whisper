@@ -89,7 +89,6 @@ const ReportCard = ({
   streamingUrl,
   error,
   fallbackUrl,
-  peerBanks,
 }: {
   icon: React.ReactNode;
   title: string;
@@ -102,7 +101,7 @@ const ReportCard = ({
   streamingUrl: string | null;
   error: string | null;
   fallbackUrl: string | null;
-) => (
+}) => (
   <Card className="p-6">
     <div className="flex flex-col items-center gap-4 text-center">
       {icon}
