@@ -88,7 +88,7 @@ const PeerComparison = ({ subjectBank, subjectMetrics, peerBanks }: PeerComparis
                         {row.getValue(metrics)}
                       </TableCell>
                     ))}
-                    <TableCell className="text-right tabular-nums text-sm bg-muted/30 font-medium">{avg}</TableCell>
+                    <TableCell className="text-right tabular-nums text-sm bg-muted/30 font-medium border-l-2 border-border">{avg}</TableCell>
                     <TableCell className={`text-right tabular-nums text-sm font-semibold ${favorable ? 'text-success' : 'text-destructive'}`}>
                       {variance > 0 ? '+' : ''}{variance}
                     </TableCell>
