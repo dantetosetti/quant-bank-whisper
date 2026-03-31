@@ -66,12 +66,13 @@ If there is no direct download URL visible, return the URL that the download but
     }
 
     const tinyFishResult = await tinyFishResponse.json();
+    console.log('TinyFish response:', JSON.stringify(tinyFishResult));
     const runId = tinyFishResult?.run_id;
 
     if (!runId) {
-      console.error('TinyFish did not return a run_id:', tinyFishResult);
+      console.error('TinyFish did not return a run_id:', JSON.stringify(tinyFishResult));
       return new Response(
-        JSON.stringify({ success: false, error: 'TinyFish did not return a run ID' }),
+        JSON.stringify({ success: false, error: 'TinyFish did not return a run ID', details: tinyFishResult }),
         { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
       );
     }
