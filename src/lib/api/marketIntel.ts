@@ -78,7 +78,7 @@ export const fetchMarketIntel = async (
       rssd: bank.rssd,
       state: bank.state,
       city: bank.city,
-      peerBanks: peerBanks.map(p => ({ name: p.name, rssd: p.rssd })),
+      peerBanks: peerBanks.map(p => ({ name: p.name, rssd: p.rssd, city: p.city, state: p.state })),
     },
   });
 
