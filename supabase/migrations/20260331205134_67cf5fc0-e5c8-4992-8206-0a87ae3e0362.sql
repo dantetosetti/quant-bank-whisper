@@ -1,0 +1,1 @@
+UPDATE public.ffiec_report_jobs SET status = 'failed', error_message = 'Prompt updated - retry needed' WHERE report_type = 'market_intel' AND status IN ('completed', 'processing')
