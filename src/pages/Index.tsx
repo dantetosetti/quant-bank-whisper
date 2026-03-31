@@ -33,10 +33,9 @@ const Index = () => {
     
     setIsLoading(true);
     try {
-      const result = await fetchUBPR(selectedBank.rssd, selectedBank.name);
       setMetrics(result.metrics);
       setDataSource(result.source === "cache" ? "live" : "live");
-      setShowDashboard(true);
+      setAnalysisReady(true);
       toast({
         title: result.source === "cache" ? "Cached FFIEC Data Loaded" : "Live FFIEC Data Loaded",
         description: result.source === "cache" 
