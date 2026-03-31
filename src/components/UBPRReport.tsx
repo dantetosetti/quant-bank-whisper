@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { FileText, ExternalLink, Loader2, AlertTriangle, Users } from "lucide-react";
+import { FileText, ExternalLink, Loader2, AlertTriangle } from "lucide-react";
 import { fetchUBPRPdf } from "@/lib/api/ubprPdf";
 import { useToast } from "@/hooks/use-toast";
 
