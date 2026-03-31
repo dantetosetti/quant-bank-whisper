@@ -1,0 +1,1 @@
+UPDATE ffiec_report_jobs SET status = 'failed', error_message = 'Cancelled by user', completed_at = now() WHERE id = '4c32cf16-7c4f-4f23-965a-40c6a147f2b9' AND status = 'processing';
