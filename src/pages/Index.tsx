@@ -94,7 +94,7 @@ const Index = () => {
 
         {/* Dashboard Content */}
         <main className="container py-6">
-          <Tabs defaultValue="ubpr" className="space-y-6">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
             <TabsList className="grid w-full grid-cols-5 h-11">
               <TabsTrigger value="ubpr" className="gap-2 text-xs">
                 <BarChart3 className="h-3.5 w-3.5" />
