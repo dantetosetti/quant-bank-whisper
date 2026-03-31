@@ -69,7 +69,7 @@ const PeerComparison = ({ subjectBank, subjectMetrics, peerBanks }: PeerComparis
                     {bank.name}
                   </TableHead>
                 ))}
-                <TableHead className="text-right font-semibold bg-muted/30">Peer Avg</TableHead>
+                <TableHead className="text-right font-semibold bg-muted/30 border-l-2 border-border">Peer Avg</TableHead>
                 <TableHead className="text-right font-semibold">Variance</TableHead>
               </TableRow>
             </TableHeader>
