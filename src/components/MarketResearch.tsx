@@ -1,18 +1,52 @@
+import { useState } from "react";
 import { Card } from "@/components/ui/card";
-import { Globe, ExternalLink } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Globe, ExternalLink, Loader2, TrendingUp, Building2, Landmark } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { fetchMarketIntel, type MarketIntelData } from "@/lib/api/marketIntel";
+import type { BankInfo } from "@/data/bankData";
 
 interface MarketResearchProps {
-  bankName: string;
+  bank: BankInfo;
+  peerBanks: BankInfo[];
 }
 
-const MarketResearch = ({ bankName }: MarketResearchProps) => {
-  const mockRates = [
-    { institution: "Regional Credit Union", product: "12-Month CD", rate: "4.75%", source: "bankrate.com", date: "Mar 2026" },
-    { institution: "Online Direct Bank", product: "High-Yield Savings", rate: "4.50%", source: "depositaccounts.com", date: "Mar 2026" },
-    { institution: "National Bank Corp", product: "Money Market", rate: "4.25%", source: "nerdwallet.com", date: "Mar 2026" },
-    { institution: "Community Savings Bank", product: "18-Month CD", rate: "4.60%", source: "bankrate.com", date: "Mar 2026" },
-    { institution: "Digital-First Bank", product: "High-Yield Savings", rate: "4.65%", source: "depositaccounts.com", date: "Mar 2026" },
-  ];
+const formatCurrency = (val: number) => {
+  if (val >= 1e9) return `$${(val / 1e9).toFixed(1)}B`;
+  if (val >= 1e6) return `$${(val / 1e6).toFixed(1)}M`;
+  if (val >= 1e3) return `$${(val / 1e3).toFixed(0)}K`;
+  return `$${val}`;
+};
+
+const MarketResearch = ({ bank, peerBanks }: MarketResearchProps) => {
+  const [isLoading, setIsLoading] = useState(false);
+  const [data, setData] = useState<MarketIntelData | null>(null);
+  const [streamingUrl, setStreamingUrl] = useState<string | null>(null);
+  const { toast } = useToast();
+
+  const handleFetch = async () => {
+    setIsLoading(true);
+    setStreamingUrl(null);
+    try {
+      const result = await fetchMarketIntel(bank, peerBanks, (url) => setStreamingUrl(url));
+      setData(result);
+      toast({ title: "Market Intel Retrieved", description: "Live market data loaded successfully." });
+    } catch (err) {
+      console.error("Market intel error:", err);
+      toast({ title: "Error", description: err instanceof Error ? err.message : "Failed to fetch market intel", variant: "destructive" });
+    } finally {
+      setIsLoading(false);
+      setStreamingUrl(null);
+    }
+  };
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -21,43 +55,174 @@ const MarketResearch = ({ bankName }: MarketResearchProps) => {
           <Globe className="h-5 w-5 text-primary" />
           <h3 className="font-display text-lg text-foreground">Market Research</h3>
         </div>
-        <p className="text-sm text-muted-foreground">Competitive rate intelligence for {bankName}</p>
+        <p className="text-sm text-muted-foreground">Competitive rate intelligence for {bank.name}</p>
       </div>
 
-      <Card className="p-4 bg-muted/30 border-dashed">
-        <p className="text-xs text-muted-foreground text-center">
-          🔍 Live market research requires TinyFish API integration. Below is sample competitive rate data.
-        </p>
-      </Card>
+      {/* Fetch button */}
+      {!data && (
+        <Card className="p-6 text-center space-y-4">
+          <p className="text-sm text-muted-foreground">
+            Retrieve live market intelligence including competitor deposit rates, FDIC market share data, and peer bank pricing.
+          </p>
+          <Button onClick={handleFetch} disabled={isLoading} className="gap-2">
+            {isLoading ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Gathering Market Intel…
+              </>
+            ) : (
+              <>
+                <Globe className="h-4 w-4" />
+                Retrieve Market Intel
+              </>
+            )}
+          </Button>
+          {streamingUrl && (
+            <p className="text-xs text-muted-foreground">
+              <a href={streamingUrl} target="_blank" rel="noopener noreferrer" className="underline">
+                Watch live extraction →
+              </a>
+            </p>
+          )}
+        </Card>
+      )}
 
-      <div className="grid gap-3">
-        {mockRates.map((rate, i) => (
-          <Card key={i} className="p-4 hover:shadow-md transition-shadow">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-semibold text-sm text-foreground">{rate.institution}</p>
-                <p className="text-xs text-muted-foreground">{rate.product}</p>
+      {/* Results */}
+      {data && (
+        <div className="space-y-8">
+          {/* Competitor Rates */}
+          {data.competitorRates?.length > 0 && (
+            <section className="space-y-3">
+              <div className="flex items-center gap-2">
+                <TrendingUp className="h-4 w-4 text-accent" />
+                <h4 className="font-semibold text-sm">Competitor Deposit Rates</h4>
               </div>
-              <div className="text-right">
-                <p className="text-lg font-bold tabular-nums text-accent">{rate.rate}</p>
-                <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                  <span>{rate.source}</span>
-                  <ExternalLink className="h-3 w-3" />
-                </div>
-              </div>
-            </div>
-          </Card>
-        ))}
-      </div>
+              <Card className="overflow-hidden overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-primary/5">
+                      <TableHead className="font-semibold">Institution</TableHead>
+                      <TableHead className="font-semibold">Product</TableHead>
+                      <TableHead className="text-right font-semibold">APY (%)</TableHead>
+                      <TableHead className="font-semibold">Source</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {data.competitorRates.map((r, i) => (
+                      <TableRow key={i}>
+                        <TableCell className="font-medium text-sm">{r.institution}</TableCell>
+                        <TableCell className="text-sm text-muted-foreground">{r.product}</TableCell>
+                        <TableCell className="text-right tabular-nums font-semibold text-accent">{r.rate}</TableCell>
+                        <TableCell className="text-xs text-muted-foreground">
+                          <span className="flex items-center gap-1">
+                            {r.source}
+                            <ExternalLink className="h-3 w-3" />
+                          </span>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </Card>
+            </section>
+          )}
 
-      <Card className="p-5 border-l-4 border-l-accent/60">
-        <h4 className="text-sm font-semibold mb-2">Market Rate Summary</h4>
-        <p className="text-sm text-muted-foreground leading-relaxed">
-          Competitive analysis indicates deposit rates ranging from 4.25% to 4.75% APY across 
-          comparable products. Online-only institutions continue to lead pricing, 
-          creating competitive pressure for community bank deposit retention strategies.
-        </p>
-      </Card>
+          {/* FDIC Market Share */}
+          {data.fdicMarketShare && (
+            <section className="space-y-3">
+              <div className="flex items-center gap-2">
+                <Building2 className="h-4 w-4 text-accent" />
+                <h4 className="font-semibold text-sm">FDIC Summary of Deposits — Market Share</h4>
+              </div>
+              <div className="grid grid-cols-3 gap-4">
+                <Card className="p-4 text-center">
+                  <p className="text-2xl font-bold text-accent tabular-nums">{data.fdicMarketShare.marketSharePct}%</p>
+                  <p className="text-xs text-muted-foreground mt-1">Market Share</p>
+                </Card>
+                <Card className="p-4 text-center">
+                  <p className="text-2xl font-bold text-foreground tabular-nums">{formatCurrency(data.fdicMarketShare.totalDeposits)}</p>
+                  <p className="text-xs text-muted-foreground mt-1">Total Deposits</p>
+                </Card>
+                <Card className="p-4 text-center">
+                  <p className="text-2xl font-bold text-foreground tabular-nums">{data.fdicMarketShare.branches}</p>
+                  <p className="text-xs text-muted-foreground mt-1">Branches</p>
+                </Card>
+              </div>
+              <p className="text-xs text-muted-foreground">Market Area: {data.fdicMarketShare.marketArea}</p>
+
+              {data.fdicMarketShare.competitors?.length > 0 && (
+                <Card className="overflow-hidden overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-primary/5">
+                        <TableHead className="font-semibold">Competitor</TableHead>
+                        <TableHead className="text-right font-semibold">Deposits</TableHead>
+                        <TableHead className="text-right font-semibold">Branches</TableHead>
+                        <TableHead className="text-right font-semibold">Market Share</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {data.fdicMarketShare.competitors.map((c, i) => (
+                        <TableRow key={i}>
+                          <TableCell className="font-medium text-sm">{c.name}</TableCell>
+                          <TableCell className="text-right tabular-nums text-sm">{formatCurrency(c.deposits)}</TableCell>
+                          <TableCell className="text-right tabular-nums text-sm">{c.branches}</TableCell>
+                          <TableCell className="text-right tabular-nums text-sm font-semibold">{c.marketSharePct}%</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </Card>
+              )}
+            </section>
+          )}
+
+          {/* Peer Bank Rates */}
+          {data.peerBankRates?.length > 0 && (
+            <section className="space-y-3">
+              <div className="flex items-center gap-2">
+                <Landmark className="h-4 w-4 text-accent" />
+                <h4 className="font-semibold text-sm">Peer Bank Advertised Rates</h4>
+              </div>
+              <Card className="overflow-hidden overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-primary/5">
+                      <TableHead className="font-semibold">Bank</TableHead>
+                      <TableHead className="font-semibold">Product</TableHead>
+                      <TableHead className="text-right font-semibold">APY (%)</TableHead>
+                      <TableHead className="font-semibold">Source</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {data.peerBankRates.map((r, i) => (
+                      <TableRow key={i}>
+                        <TableCell className="font-medium text-sm">{r.bankName}</TableCell>
+                        <TableCell className="text-sm text-muted-foreground">{r.product}</TableCell>
+                        <TableCell className="text-right tabular-nums font-semibold text-accent">{r.rate}</TableCell>
+                        <TableCell className="text-xs text-muted-foreground">
+                          <span className="flex items-center gap-1">
+                            {r.source}
+                            <ExternalLink className="h-3 w-3" />
+                          </span>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </Card>
+            </section>
+          )}
+
+          {/* Refresh */}
+          <div className="text-center pt-2">
+            <Button variant="outline" size="sm" onClick={handleFetch} disabled={isLoading} className="gap-2">
+              {isLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Globe className="h-3 w-3" />}
+              Refresh Market Intel
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
