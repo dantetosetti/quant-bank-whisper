@@ -48,7 +48,7 @@ const Index = () => {
       const mockData = generateMockMetrics(selectedBank.rssd);
       setMetrics(mockData);
       setDataSource("mock");
-      setShowDashboard(true);
+      setAnalysisReady(true);
       toast({
         title: "Using Sample Data",
         description: "Could not reach FFIEC CDR. Showing estimated data.",
