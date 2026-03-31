@@ -8,21 +8,14 @@ import { useToast } from "@/hooks/use-toast";
 interface UBPRReportProps {
   bankName: string;
   rssd?: string;
-  peerBanks?: BankInfo[];
 }
 
-const UBPRReport = ({ bankName, rssd, peerBanks = [] }: UBPRReportProps) => {
+const UBPRReport = ({ bankName, rssd }: UBPRReportProps) => {
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [ffiecUrl, setFfiecUrl] = useState<string | null>(null);
   const [isLoadingPdf, setIsLoadingPdf] = useState(false);
   const [pdfError, setPdfError] = useState<string | null>(null);
   const [streamingUrl, setStreamingUrl] = useState<string | null>(null);
-
-  const [peerPdfUrl, setPeerPdfUrl] = useState<string | null>(null);
-  const [peerFfiecUrl, setPeerFfiecUrl] = useState<string | null>(null);
-  const [isLoadingPeer, setIsLoadingPeer] = useState(false);
-  const [peerError, setPeerError] = useState<string | null>(null);
-  const [peerStreamingUrl, setPeerStreamingUrl] = useState<string | null>(null);
 
   const { toast } = useToast();
 
