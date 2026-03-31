@@ -194,15 +194,28 @@ const Index = () => {
 
           <div className="mt-12 grid grid-cols-4 gap-4 text-center animate-fade-in" style={{ animationDelay: "0.3s" }}>
             {[
-              { icon: BarChart3, label: "FFIEC Reports" },
-              { icon: Brain, label: "AI Narratives" },
-              { icon: Users, label: "Peer Analysis" },
-              { icon: Globe, label: "Market Intel" },
-            ].map(({ icon: Icon, label }) => (
-              <div key={label} className="p-3 rounded-lg bg-muted/50">
-                <Icon className="h-5 w-5 mx-auto mb-1.5 text-primary/70" />
-                <p className="text-xs text-muted-foreground font-medium">{label}</p>
-              </div>
+              { icon: BarChart3, label: "FFIEC Reports", tab: "ubpr" },
+              { icon: Brain, label: "AI Narratives", tab: "insights" },
+              { icon: Users, label: "Peer Analysis", tab: "peers" },
+              { icon: Globe, label: "Market Intel", tab: "market" },
+            ].map(({ icon: Icon, label, tab }) => (
+              <button
+                key={label}
+                disabled={!analysisReady}
+                onClick={() => {
+                  setActiveTab(tab);
+                  setShowDashboard(true);
+                }}
+                className={cn(
+                  "p-3 rounded-lg transition-all",
+                  analysisReady
+                    ? "bg-accent/15 border-2 border-accent text-accent cursor-pointer hover:bg-accent/25 hover:scale-105"
+                    : "bg-muted/50 text-muted-foreground cursor-default"
+                )}
+              >
+                <Icon className={cn("h-5 w-5 mx-auto mb-1.5", analysisReady ? "text-accent" : "text-primary/70")} />
+                <p className="text-xs font-medium">{label}</p>
+              </button>
             ))}
           </div>
         </div>
