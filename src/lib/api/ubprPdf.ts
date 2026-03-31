@@ -12,7 +12,11 @@ interface UBPRPdfResponse {
   jobId?: string;
 }
 
-export const fetchUBPRPdf = async (rssd: string, bankName: string): Promise<UBPRPdfResponse> => {
+export const fetchUBPRPdf = async (
+  rssd: string,
+  bankName: string,
+  onStreamingUrl?: (url: string) => void,
+): Promise<UBPRPdfResponse> => {
   const { data, error } = await supabase.functions.invoke<UBPRPdfResponse>('fetch-ubpr-pdf', {
     body: { rssd, bankName },
   });
@@ -30,7 +34,7 @@ export const fetchUBPRPdf = async (rssd: string, bankName: string): Promise<UBPR
   }
 
   if (data.status === 'processing' && data.jobId) {
-    const finalJob = await pollFFIECJob(data.jobId);
+    const finalJob = await pollFFIECJob(data.jobId, onStreamingUrl);
 
     if (finalJob.status === 'failed') {
       throw new Error(finalJob.error || 'Failed to retrieve UBPR PDF');
