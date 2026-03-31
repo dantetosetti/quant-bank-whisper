@@ -92,9 +92,9 @@ If there is no direct download URL visible, return the URL that the download but
       .single();
 
     if (jobError || !job) {
-      console.error('Bulk download job insert error:', jobError);
+      console.error('Bulk download job insert error:', JSON.stringify(jobError));
       return new Response(
-        JSON.stringify({ success: false, error: 'Failed to create bulk download job' }),
+        JSON.stringify({ success: false, error: 'Failed to create bulk download job', details: jobError }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
       );
     }
