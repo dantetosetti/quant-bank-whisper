@@ -21,6 +21,8 @@ const Index = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [metrics, setMetrics] = useState<BankMetrics[]>([]);
   const [dataSource, setDataSource] = useState<"live" | "mock">("live");
+  const [analysisReady, setAnalysisReady] = useState(false);
+  const [activeTab, setActiveTab] = useState("ubpr");
   const { toast } = useToast();
 
   const selectedBank = subjectBank[0];
