@@ -1,46 +1,77 @@
 
 
-## Plan: Client-Side Parsing + Direct Insert Pipeline
+## Plan: Generate UBPR PDF Report from Database Data
 
-### Problem
-The current pipeline uploads files to Storage, then an Edge Function parses + inserts them — but Edge Functions hit CPU/memory limits on large files.
+### Overview
+Replace the current TinyFish/FFIEC website scraping approach with a PDF generator that pulls UBPR data from the `ubpr_data` table and renders a professional report styled like the official FFIEC UBPR facsimile.
 
-### Solution
-Parse files **in the browser** (no resource limits for reasonable files), then send small batches to a **lightweight Edge Function** that only does inserts. No Storage upload needed, no job tracking needed.
+### Architecture
 
 ```text
-Browser                          Edge Function
-┌──────────────┐                ┌──────────────┐
-│ Drag & drop  │                │ Receive JSON │
-│ Parse XBRL   │──── batch ───>│ Insert rows  │
-│ Show progress│<── response ──│ Return count │
-└──────────────┘                └──────────────┘
+Browser (click "Generate Report")
+  → Edge Function: generate-ubpr-pdf
+    → Query ubpr_data for bank + last 5 quarters
+    → Map UBPR concept codes to report line items
+    → Generate PDF using jsPDF or similar
+    → Upload PDF to Storage (ubpr-reports bucket)
+    → Return PDF URL
+  → Browser embeds/downloads PDF
 ```
 
 ### Changes
 
-**1. New Edge Function: `insert-ubpr-batch`**
-- Accepts `{ records: [{rssd, report_date, metrics, source_concepts}] }` (up to 100 per call)
-- Upserts into `ubpr_data` using service_role
-- Returns inserted/error counts
-- Very simple, no parsing, no file I/O — stays well within limits
+**1. New Edge Function: `generate-ubpr-pdf`**
+- Accepts `{ rssd, bankName }` 
+- Queries `ubpr_data` for all report dates for that RSSD, selects the most recent 5 quarters
+- Maps ~107 UBPR concept codes to human-readable line items organized into standard UBPR report sections:
+  - **Summary Ratios** (Earnings, Liquidity, Capitalization, Asset Quality)
+  - **Income Statement** (Interest Income, Interest Expense, Noninterest Income/Expense, Net Income)
+  - **Balance Sheet** (Assets, Liabilities, Capital)
+- Formats values: dollar amounts in thousands with commas, ratios as percentages
+- Generates a multi-page PDF with tables showing 5 quarters side-by-side
+- Stores the PDF in the `ubpr-reports` storage bucket
+- Returns the public URL
 
-**2. Update `AdminUpload.tsx`**
-- Move XBRL and tab-delimited parsing logic into client-side utility functions
-- On file drop: read file as text, parse in browser, show record count
-- Send records in batches of 100 to the new edge function
-- Show progress bar as batches complete
-- Remove the Storage upload + job-based processing flow
+**2. New file: `src/lib/ubprConceptMap.ts`**
+- A mapping of UBPR concept codes (e.g., `UBPRD660` = "Return on Average Assets", `UBPRD653` = "Net Interest Margin") to:
+  - Human-readable label
+  - Report section
+  - Display format (dollar amount vs. ratio/percentage)
+  - Sort order within section
 
-**3. New file: `src/lib/parseUBPR.ts`**
-- Client-side XBRL parser (port the existing `parseXBRL` function using browser DOMParser)
-- Client-side tab-delimited parser (port `parseTabDelimited`)
+**3. Update `UBPRReport.tsx`**
+- Replace TinyFish-based fetching with a call to the new `generate-ubpr-pdf` edge function
+- Remove references to TinyFish streaming URLs and live progress messaging
+- Keep the existing PDF viewer component for displaying the result
+- Update loading text to "Generating report from database..."
 
-### What stays the same
-- `ubpr_data` table schema unchanged
-- All dashboard components read from the same table
-- RLS policies unchanged (service_role inserts via edge function)
+**4. Update `src/lib/api/ubprPdf.ts`**
+- Simplify to call `generate-ubpr-pdf` instead of `fetch-ubpr-pdf`
+- Remove the job polling logic (PDF generation will be synchronous, not async)
+- Return the PDF URL directly
+
+### UBPR Concept Code Mapping (Key Fields)
+Based on the data in the database, the main mappings include:
+
+| Code | Label | Format |
+|------|-------|--------|
+| UBPRD660 | Return on Average Assets | % (needs division) |
+| UBPRD661 | Return on Average Equity | % |
+| UBPRD653 | Net Interest Margin | % |
+| UBPRE119 | Efficiency Ratio | % |
+| UBPR2170 | Tier 1 Capital | $ |
+| UBPRD672 | Noncurrent Loans | $ |
+| UBPR0071 | Total Assets | $ |
+| UBPRB528 | Total Loans & Leases | $ |
+| UBPRD662 | Average Assets | $ |
+
+Note: The stored values appear to be raw numbers (in units, not thousands). The PDF generator will need to divide by 1000 for display in thousands.
+
+### What gets removed
+- The `fetch-ubpr-pdf` edge function (TinyFish-based) becomes unused
+- Job polling for PDF retrieval in `ubprPdf.ts`
+- TinyFish streaming URL references in the UI
 
 ### Result
-You drag and drop your files on `/admin/upload`, the browser parses them instantly, and records stream into the database in small batches with a progress bar. No timeouts, no storage intermediary.
+Clicking "Retrieve UBPR Report" generates a clean, formatted PDF from database data in seconds — no FFIEC website navigation, no TinyFish dependency, no multi-minute waits.
 
