@@ -203,6 +203,12 @@ All rate values must be numbers (not strings). If a field is not found, use null
       );
     }
 
+    // Store peer RSSDs list so cache can be matched later
+    const peerRssdList = ((peerBanks || []) as { rssd?: string }[])
+      .map(p => p.rssd)
+      .filter(Boolean)
+      .sort();
+
     const { data: job, error: jobError } = await supabase
       .from('ffiec_report_jobs')
       .insert({
@@ -212,6 +218,7 @@ All rate values must be numbers (not strings). If a field is not found, use null
         status: 'processing',
         source: 'live',
         tinyfish_run_id: runId,
+        result_metrics: { _peerRssds: peerRssdList },
       })
       .select('id')
       .single();
