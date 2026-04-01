@@ -8,12 +8,15 @@ const corsHeaders = {
 function parseMarketIntelResult(raw: unknown): unknown {
   if (!raw || typeof raw !== 'object') return raw;
   const obj = raw as Record<string, unknown>;
-  if (obj.peerBankRates || obj.localNews || obj.socialMedia) return raw;
-  if (typeof obj.result === 'string') {
-    const cleaned = obj.result.replace(/^```json\s*/i, '').replace(/\s*```\s*$/,'');
-    try { return JSON.parse(cleaned); } catch { return raw; }
+  // Strip internal metadata before returning
+  const cleaned = { ...obj };
+  delete (cleaned as Record<string, unknown>)._peerRssds;
+  if (cleaned.peerBankRates || cleaned.localNews || cleaned.socialMedia) return cleaned;
+  if (typeof cleaned.result === 'string') {
+    const stripped = (cleaned.result as string).replace(/^```json\s*/i, '').replace(/\s*```\s*$/,'');
+    try { return JSON.parse(stripped); } catch { return cleaned; }
   }
-  return raw;
+  return cleaned;
 }
 
 Deno.serve(async (req) => {
@@ -23,6 +26,13 @@ Deno.serve(async (req) => {
 
   try {
     const { bankName, rssd, state, city, peerBanks } = await req.json();
+
+    // Build a deterministic peer key for cache matching
+    const peerRssds = ((peerBanks || []) as { rssd?: string }[])
+      .map(p => p.rssd)
+      .filter(Boolean)
+      .sort()
+      .join(',');
 
     if (!bankName || !rssd) {
       return new Response(
@@ -57,12 +67,22 @@ Deno.serve(async (req) => {
       .maybeSingle();
 
     if (existingJob?.result_metrics) {
-      console.log(`Market intel cache hit for ${bankName}`);
-      const parsed = parseMarketIntelResult(existingJob.result_metrics);
-      return new Response(
-        JSON.stringify({ success: true, source: 'cache', status: 'completed', data: parsed }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
-      );
+      // Compare stored peer RSSDs with current request
+      const metrics = existingJob.result_metrics as Record<string, unknown>;
+      const cachedPeers = Array.isArray(metrics._peerRssds)
+        ? (metrics._peerRssds as string[]).sort().join(',')
+        : '';
+      
+      if (cachedPeers === peerRssds) {
+        console.log(`Market intel cache hit for ${bankName}`);
+        const parsed = parseMarketIntelResult(existingJob.result_metrics);
+        return new Response(
+          JSON.stringify({ success: true, source: 'cache', status: 'completed', data: parsed }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        );
+      } else {
+        console.log(`Market intel cache miss: peer set changed for ${bankName}`);
+      }
     }
 
     // Check if there's already a processing job
@@ -183,6 +203,12 @@ All rate values must be numbers (not strings). If a field is not found, use null
       );
     }
 
+    // Store peer RSSDs list so cache can be matched later
+    const peerRssdList = ((peerBanks || []) as { rssd?: string }[])
+      .map(p => p.rssd)
+      .filter(Boolean)
+      .sort();
+
     const { data: job, error: jobError } = await supabase
       .from('ffiec_report_jobs')
       .insert({
@@ -192,6 +218,7 @@ All rate values must be numbers (not strings). If a field is not found, use null
         status: 'processing',
         source: 'live',
         tinyfish_run_id: runId,
+        result_metrics: { _peerRssds: peerRssdList },
       })
       .select('id')
       .single();
