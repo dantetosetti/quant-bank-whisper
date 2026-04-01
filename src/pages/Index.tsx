@@ -25,6 +25,7 @@ const Index = () => {
   const [dataSource, setDataSource] = useState<"live" | "mock">("live");
   const [analysisReady, setAnalysisReady] = useState(false);
   const [activeTab, setActiveTab] = useState("ubpr");
+  const [marketIntelData, setMarketIntelData] = useState<MarketIntelData | null>(null);
   const { toast } = useToast();
 
   const selectedBank = subjectBank[0];
