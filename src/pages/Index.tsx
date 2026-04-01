@@ -6,7 +6,7 @@ import BankSelector from "@/components/BankSelector";
 import UBPRReport from "@/components/UBPRReport";
 import AINarrativePanel from "@/components/AINarrativePanel";
 import PeerComparison from "@/components/PeerComparison";
-import DepositAnalysis from "@/components/DepositAnalysis";
+
 import MarketResearch from "@/components/MarketResearch";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
