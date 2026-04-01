@@ -8,12 +8,15 @@ const corsHeaders = {
 function parseMarketIntelResult(raw: unknown): unknown {
   if (!raw || typeof raw !== 'object') return raw;
   const obj = raw as Record<string, unknown>;
-  if (obj.peerBankRates || obj.localNews || obj.socialMedia) return raw;
-  if (typeof obj.result === 'string') {
-    const cleaned = obj.result.replace(/^```json\s*/i, '').replace(/\s*```\s*$/,'');
-    try { return JSON.parse(cleaned); } catch { return raw; }
+  // Strip internal metadata before returning
+  const cleaned = { ...obj };
+  delete (cleaned as Record<string, unknown>)._peerRssds;
+  if (cleaned.peerBankRates || cleaned.localNews || cleaned.socialMedia) return cleaned;
+  if (typeof cleaned.result === 'string') {
+    const stripped = (cleaned.result as string).replace(/^```json\s*/i, '').replace(/\s*```\s*$/,'');
+    try { return JSON.parse(stripped); } catch { return cleaned; }
   }
-  return raw;
+  return cleaned;
 }
 
 Deno.serve(async (req) => {
