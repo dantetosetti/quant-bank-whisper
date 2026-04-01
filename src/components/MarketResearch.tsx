@@ -33,6 +33,7 @@ const MarketResearch = ({ bank, peerBanks, cachedData, onDataLoaded }: MarketRes
     try {
       const result = await fetchMarketIntel(bank, peerBanks, (url) => setStreamingUrl(url));
       setData(result);
+      onDataLoaded?.(result);
       toast({ title: "Market Intel Retrieved", description: "Live market data loaded successfully." });
     } catch (err) {
       console.error("Market intel error:", err);
