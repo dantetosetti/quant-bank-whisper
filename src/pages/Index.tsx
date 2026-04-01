@@ -195,7 +195,7 @@ const Index = () => {
                 )}
               >
                 <Icon className={cn("h-5 w-5 mx-auto mb-1.5", analysisReady ? "text-accent" : "text-primary/70")} />
-                <p className="text-xs font-medium">{label}</p>
+                <p className="text-xs font-medium whitespace-pre-line">{label}</p>
               </button>
             ))}
           </div>
