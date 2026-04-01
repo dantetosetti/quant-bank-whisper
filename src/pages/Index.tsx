@@ -29,15 +29,14 @@ const Index = () => {
   const selectedBank = subjectBank[0];
   const narratives = selectedBank ? generateNarrative(selectedBank, metrics.length > 0 ? metrics : generateMockMetrics(selectedBank.rssd)) : [];
 
-  const handleAnalyze = () => {
+  const handleNavigate = (tab: string) => {
     if (!selectedBank) return;
-    
     const mockData = generateMockMetrics(selectedBank.rssd);
     setMetrics(mockData);
     setDataSource("live");
     setAnalysisReady(true);
+    setActiveTab(tab);
     setShowDashboard(true);
-    setActiveTab("ubpr");
   };
 
   if (showDashboard && selectedBank) {
