@@ -13,6 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BarChart3, Brain, Users, Globe, FileText } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import type { BankMetrics } from "@/data/bankData";
+import type { MarketIntelData } from "@/lib/api/marketIntel";
 
 
 const Index = () => {
