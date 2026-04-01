@@ -10,7 +10,7 @@ import DepositAnalysis from "@/components/DepositAnalysis";
 import MarketResearch from "@/components/MarketResearch";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { BarChart3, Brain, Users, Landmark, Globe, ArrowRight, Loader2, FileText } from "lucide-react";
+import { BarChart3, Brain, Users, Landmark, Globe, FileText } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import type { BankMetrics } from "@/data/bankData";
 
@@ -29,15 +29,14 @@ const Index = () => {
   const selectedBank = subjectBank[0];
   const narratives = selectedBank ? generateNarrative(selectedBank, metrics.length > 0 ? metrics : generateMockMetrics(selectedBank.rssd)) : [];
 
-  const handleAnalyze = () => {
+  const handleNavigate = (tab: string) => {
     if (!selectedBank) return;
-    
     const mockData = generateMockMetrics(selectedBank.rssd);
     setMetrics(mockData);
     setDataSource("live");
     setAnalysisReady(true);
+    setActiveTab(tab);
     setShowDashboard(true);
-    setActiveTab("ubpr");
   };
 
   if (showDashboard && selectedBank) {
@@ -154,26 +153,9 @@ const Index = () => {
               maxSelections={25}
             />
 
-            <Button
-              className="w-full h-12 text-base gap-2"
-              onClick={handleAnalyze}
-              disabled={!selectedBank || isLoading}
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Fetching FFIEC Data…
-                </>
-              ) : (
-                <>
-                  Analyze Performance
-                  <ArrowRight className="h-4 w-4" />
-                </>
-              )}
-            </Button>
           </div>
 
-          <div className="mt-12 grid grid-cols-4 gap-4 text-center animate-fade-in" style={{ animationDelay: "0.3s" }}>
+          <div className="mt-8 grid grid-cols-4 gap-4 text-center animate-fade-in" style={{ animationDelay: "0.15s" }}>
             {[
               { icon: BarChart3, label: "Subject Bank\nFFIEC Report", tab: "ubpr" },
               { icon: Users, label: "Peer Group\nAnalysis", tab: "peers" },
@@ -182,19 +164,16 @@ const Index = () => {
             ].map(({ icon: Icon, label, tab }) => (
               <button
                 key={label}
-                disabled={!analysisReady}
-                onClick={() => {
-                  setActiveTab(tab);
-                  setShowDashboard(true);
-                }}
+                disabled={!selectedBank}
+                onClick={() => handleNavigate(tab)}
                 className={cn(
                   "p-3 rounded-lg transition-all",
-                  analysisReady
+                  selectedBank
                     ? "bg-accent/15 border-2 border-accent text-accent cursor-pointer hover:bg-accent/25 hover:scale-105"
                     : "bg-muted/50 text-muted-foreground cursor-default"
                 )}
               >
-                <Icon className={cn("h-5 w-5 mx-auto mb-1.5", analysisReady ? "text-accent" : "text-primary/70")} />
+                <Icon className={cn("h-5 w-5 mx-auto mb-1.5", selectedBank ? "text-accent" : "text-primary/70")} />
                 <p className="text-xs font-medium whitespace-pre-line">{label}</p>
               </button>
             ))}
