@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { FileText, ExternalLink, Loader2, AlertTriangle } from "lucide-react";
-import { fetchUBPRPdf } from "@/lib/api/ubprPdf";
+import { FileText, Download, Loader2, AlertTriangle } from "lucide-react";
+import { fetchUBPRData } from "@/lib/api/ubprPdf";
+import { generateUBPRPdf } from "@/lib/generateUBPRPdf";
 import { useToast } from "@/hooks/use-toast";
 
 interface UBPRReportProps {
@@ -12,36 +13,35 @@ interface UBPRReportProps {
 
 const UBPRReport = ({ bankName, rssd }: UBPRReportProps) => {
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
-  const [ffiecUrl, setFfiecUrl] = useState<string | null>(null);
-  const [isLoadingPdf, setIsLoadingPdf] = useState(false);
-  const [pdfError, setPdfError] = useState<string | null>(null);
-  const [streamingUrl, setStreamingUrl] = useState<string | null>(null);
-
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
-  const handleFetchPdf = async () => {
+  const handleGenerate = async () => {
     if (!rssd) return;
-    setIsLoadingPdf(true);
-    setPdfError(null);
-    setStreamingUrl(null);
+    setIsLoading(true);
+    setError(null);
 
     try {
-      const result = await fetchUBPRPdf(rssd, bankName, (url) => setStreamingUrl(url));
-      if (result.pdfUrl) {
-        setPdfUrl(result.pdfUrl);
-        toast({ title: "FFIEC Report Loaded", description: `UBPR PDF for ${bankName} retrieved successfully.` });
-      } else if (result.ffiecUrl) {
-        setFfiecUrl(result.ffiecUrl);
-        setPdfError(result.message || "Could not auto-download the PDF.");
-      }
-    } catch (error) {
-      console.error("Failed to fetch UBPR PDF:", error);
-      setPdfError("Could not retrieve the FFIEC PDF report. You can access it directly from the FFIEC CDR.");
-      setFfiecUrl("https://cdr.ffiec.gov/public/ManageFacsimiles.aspx");
+      const quarters = await fetchUBPRData(rssd);
+      const blob = await generateUBPRPdf(bankName, rssd, quarters);
+      const url = URL.createObjectURL(blob);
+      setPdfUrl(url);
+      toast({ title: "Report Generated", description: `UBPR PDF for ${bankName} is ready.` });
+    } catch (err) {
+      console.error("Failed to generate UBPR PDF:", err);
+      setError(err instanceof Error ? err.message : "Failed to generate UBPR report.");
     } finally {
-      setIsLoadingPdf(false);
-      setStreamingUrl(null);
+      setIsLoading(false);
     }
+  };
+
+  const handleDownload = () => {
+    if (!pdfUrl) return;
+    const a = document.createElement("a");
+    a.href = pdfUrl;
+    a.download = `UBPR_${bankName.replace(/\s+/g, "_")}_${rssd}.pdf`;
+    a.click();
   };
 
   return (
@@ -51,136 +51,55 @@ const UBPRReport = ({ bankName, rssd }: UBPRReportProps) => {
         <p className="text-sm text-muted-foreground">{bankName} — Uniform Bank Performance Report</p>
       </div>
 
-      {/* UBPR PDF Section */}
       {!pdfUrl && (
-        <ReportCard
-          icon={<FileText className="h-12 w-12 text-primary/60" />}
-          title="UBPR Facsimile Report"
-          description="Retrieve the official UBPR facsimile report from the FFIEC Central Data Repository."
-          buttonLabel="Retrieve UBPR Report"
-          loadingLabel="Retrieving from FFIEC CDR…"
-          isLoading={isLoadingPdf}
-          disabled={!rssd}
-          onFetch={handleFetchPdf}
-          streamingUrl={streamingUrl}
-          error={pdfError}
-          fallbackUrl={ffiecUrl}
-        />
+        <Card className="p-6">
+          <div className="flex flex-col items-center gap-4 text-center">
+            <FileText className="h-12 w-12 text-primary/60" />
+            <div>
+              <h4 className="font-semibold text-foreground">UBPR Facsimile Report</h4>
+              <p className="text-sm text-muted-foreground mt-1">
+                Generate a UBPR report from uploaded data showing the most recent 5 quarters.
+              </p>
+            </div>
+
+            <Button onClick={handleGenerate} disabled={isLoading || !rssd} className="gap-2">
+              {isLoading ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Generating report…
+                </>
+              ) : (
+                <>
+                  <FileText className="h-4 w-4" />
+                  Generate UBPR Report
+                </>
+              )}
+            </Button>
+
+            {error && (
+              <div className="flex items-start gap-2 text-sm text-muted-foreground bg-muted/50 rounded-lg p-3 w-full">
+                <AlertTriangle className="h-4 w-4 text-destructive mt-0.5 shrink-0" />
+                <p className="text-left">{error}</p>
+              </div>
+            )}
+          </div>
+        </Card>
       )}
 
       {pdfUrl && (
-        <PdfViewer url={pdfUrl} title={`UBPR Report for ${bankName}`} label="FFIEC UBPR Facsimile" />
+        <Card className="overflow-hidden">
+          <div className="flex items-center justify-between px-4 py-2 bg-muted/50 border-b">
+            <span className="text-sm font-medium text-muted-foreground">FFIEC UBPR Facsimile</span>
+            <Button variant="outline" size="sm" onClick={handleDownload} className="gap-1">
+              <Download className="h-3 w-3" />
+              Download PDF
+            </Button>
+          </div>
+          <iframe src={pdfUrl} className="w-full h-[700px] border-0" title={`UBPR Report for ${bankName}`} />
+        </Card>
       )}
-
     </div>
   );
 };
-
-/* Reusable report request card */
-const ReportCard = ({
-  icon,
-  title,
-  description,
-  buttonLabel,
-  loadingLabel,
-  isLoading,
-  disabled,
-  onFetch,
-  streamingUrl,
-  error,
-  fallbackUrl,
-}: {
-  icon: React.ReactNode;
-  title: string;
-  description: string;
-  buttonLabel: string;
-  loadingLabel: string;
-  isLoading: boolean;
-  disabled: boolean;
-  onFetch: () => void;
-  streamingUrl: string | null;
-  error: string | null;
-  fallbackUrl: string | null;
-}) => (
-  <Card className="p-6">
-    <div className="flex flex-col items-center gap-4 text-center">
-      {icon}
-      <div>
-        <h4 className="font-semibold text-foreground">{title}</h4>
-        <p className="text-sm text-muted-foreground mt-1">{description}</p>
-      </div>
-
-      <Button onClick={onFetch} disabled={isLoading || disabled} className="gap-2">
-        {isLoading ? (
-          <>
-            <Loader2 className="h-4 w-4 animate-spin" />
-            {loadingLabel}
-          </>
-        ) : (
-          <>
-            <FileText className="h-4 w-4" />
-            {buttonLabel}
-          </>
-        )}
-      </Button>
-
-      {isLoading && (
-        <div className="text-sm text-muted-foreground bg-muted/50 rounded-lg p-3 w-full text-left space-y-2">
-          <p className="font-medium">Navigating the FFIEC website to generate your report…</p>
-          <p>This may take several minutes. The process is automating interactions with the FFIEC CDR portal.</p>
-          {streamingUrl && (
-            <a
-              href={streamingUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 text-primary hover:underline text-xs"
-            >
-              Watch live progress
-              <ExternalLink className="h-3 w-3" />
-            </a>
-          )}
-        </div>
-      )}
-
-      {error && (
-        <div className="flex items-start gap-2 text-sm text-muted-foreground bg-muted/50 rounded-lg p-3 w-full">
-          <AlertTriangle className="h-4 w-4 text-destructive mt-0.5 shrink-0" />
-          <div className="text-left">
-            <p>{error}</p>
-            {fallbackUrl && (
-              <a
-                href={fallbackUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 text-primary hover:underline mt-1"
-              >
-                Open FFIEC CDR directly
-                <ExternalLink className="h-3 w-3" />
-              </a>
-            )}
-          </div>
-        </div>
-      )}
-    </div>
-  </Card>
-);
-
-/* PDF embed viewer */
-const PdfViewer = ({ url, title, label }: { url: string; title: string; label: string }) => (
-  <Card className="overflow-hidden">
-    <div className="flex items-center justify-between px-4 py-2 bg-muted/50 border-b">
-      <span className="text-sm font-medium text-muted-foreground">{label}</span>
-      <a
-        href={url}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="text-xs text-primary hover:underline inline-flex items-center gap-1"
-      >
-        Open in new tab <ExternalLink className="h-3 w-3" />
-      </a>
-    </div>
-    <iframe src={url} className="w-full h-[700px] border-0" title={title} />
-  </Card>
-);
 
 export default UBPRReport;
