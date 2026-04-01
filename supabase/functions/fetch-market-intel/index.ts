@@ -5,6 +5,17 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+function parseMarketIntelResult(raw: unknown): unknown {
+  if (!raw || typeof raw !== 'object') return raw;
+  const obj = raw as Record<string, unknown>;
+  if (obj.peerBankRates || obj.localNews || obj.socialMedia) return raw;
+  if (typeof obj.result === 'string') {
+    const cleaned = obj.result.replace(/^```json\s*/i, '').replace(/\s*```\s*$/,'');
+    try { return JSON.parse(cleaned); } catch { return raw; }
+  }
+  return raw;
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
