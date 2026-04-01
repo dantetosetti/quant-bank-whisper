@@ -104,9 +104,6 @@ const Index = () => {
               <PeerComparison subjectBank={selectedBank} subjectMetrics={metrics} peerBanks={peerBanks} />
             </TabsContent>
 
-            <TabsContent value="deposits">
-              <DepositAnalysis bankName={selectedBank.name} metrics={metrics} />
-            </TabsContent>
 
             <TabsContent value="market">
               <MarketResearch bank={selectedBank} peerBanks={peerBanks} />
