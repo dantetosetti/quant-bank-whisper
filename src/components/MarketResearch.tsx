@@ -17,11 +17,13 @@ import type { BankInfo } from "@/data/bankData";
 interface MarketResearchProps {
   bank: BankInfo;
   peerBanks: BankInfo[];
+  cachedData?: MarketIntelData | null;
+  onDataLoaded?: (data: MarketIntelData) => void;
 }
 
-const MarketResearch = ({ bank, peerBanks }: MarketResearchProps) => {
+const MarketResearch = ({ bank, peerBanks, cachedData, onDataLoaded }: MarketResearchProps) => {
   const [isLoading, setIsLoading] = useState(false);
-  const [data, setData] = useState<MarketIntelData | null>(null);
+  const [data, setData] = useState<MarketIntelData | null>(cachedData ?? null);
   const [streamingUrl, setStreamingUrl] = useState<string | null>(null);
   const { toast } = useToast();
 
