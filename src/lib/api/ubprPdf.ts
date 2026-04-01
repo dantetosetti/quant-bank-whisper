@@ -1,53 +1,31 @@
 import { supabase } from '@/integrations/supabase/client';
-import { pollFFIECJob } from '@/lib/api/ffiecJobs';
 
-interface UBPRPdfResponse {
-  success: boolean;
-  error?: string;
-  pdfUrl?: string | null;
-  ffiecUrl?: string;
-  message?: string;
-  source?: 'cache' | 'live' | 'fallback';
-  status?: 'processing' | 'completed' | 'failed';
-  jobId?: string;
+export interface UBPRPdfData {
+  report_date: string;
+  metrics: Record<string, number | string>;
 }
 
-export const fetchUBPRPdf = async (
-  rssd: string,
-  bankName: string,
-  onStreamingUrl?: (url: string) => void,
-): Promise<UBPRPdfResponse> => {
-  const { data, error } = await supabase.functions.invoke<UBPRPdfResponse>('fetch-ubpr-pdf', {
-    body: { rssd, bankName },
-  });
+/**
+ * Fetch UBPR data for a bank from the database (up to 5 most recent quarters).
+ */
+export const fetchUBPRData = async (rssd: string): Promise<UBPRPdfData[]> => {
+  const { data, error } = await supabase
+    .from('ubpr_data')
+    .select('report_date, metrics')
+    .eq('rssd', rssd)
+    .order('report_date', { ascending: false })
+    .limit(5);
 
   if (error) {
-    throw new Error(`Failed to fetch UBPR PDF: ${error.message}`);
+    throw new Error(`Failed to fetch UBPR data: ${error.message}`);
   }
 
-  if (!data?.success) {
-    throw new Error(data?.error || 'Failed to retrieve UBPR PDF');
+  if (!data || data.length === 0) {
+    throw new Error('No UBPR data found for this bank. Upload data first via Admin Upload.');
   }
 
-  if (data.pdfUrl || data.source === 'cache') {
-    return data;
-  }
-
-  if (data.status === 'processing' && data.jobId) {
-    const finalJob = await pollFFIECJob(data.jobId, onStreamingUrl);
-
-    if (finalJob.status === 'failed') {
-      throw new Error(finalJob.error || 'Failed to retrieve UBPR PDF');
-    }
-
-    return {
-      success: true,
-      pdfUrl: finalJob.pdfUrl,
-      ffiecUrl: finalJob.ffiecUrl,
-      message: finalJob.message,
-      source: finalJob.source,
-    };
-  }
-
-  return data;
+  return data.map((row) => ({
+    report_date: row.report_date,
+    metrics: row.metrics as Record<string, number | string>,
+  }));
 };
