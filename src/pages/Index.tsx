@@ -175,10 +175,10 @@ const Index = () => {
 
           <div className="mt-12 grid grid-cols-4 gap-4 text-center animate-fade-in" style={{ animationDelay: "0.3s" }}>
             {[
-              { icon: BarChart3, label: "FFIEC Reports", tab: "ubpr" },
-              { icon: Brain, label: "AI Narratives", tab: "insights" },
-              { icon: Users, label: "Peer Analysis", tab: "peers" },
-              { icon: Globe, label: "Market Intel", tab: "market" },
+              { icon: BarChart3, label: "Subject Bank\nFFIEC Report", tab: "ubpr" },
+              { icon: Brain, label: "Detailed\nAnalysis", tab: "insights" },
+              { icon: Users, label: "Peer Group\nAnalysis", tab: "peers" },
+              { icon: Globe, label: "Market\nIntel", tab: "market" },
             ].map(({ icon: Icon, label, tab }) => (
               <button
                 key={label}
