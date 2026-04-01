@@ -98,7 +98,7 @@ export const fetchMarketIntel = async (
   }
 
   if (data?.success && data?.status === 'completed' && data?.data) {
-    return data.data;
+    return parseMarketIntelResult(data.data);
   }
 
   if (data?.success && data?.status === 'processing' && data?.jobId) {
