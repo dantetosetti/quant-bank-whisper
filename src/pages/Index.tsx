@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { cn } from "@/lib/utils";
-import { type BankInfo, generateMockMetrics, generateNarrative } from "@/data/bankData";
+import { type BankInfo, generateNarrative } from "@/data/bankData";
 import { fetchUBPR } from "@/lib/api/ubpr";
 import BankSelector from "@/components/BankSelector";
 import UBPRReport from "@/components/UBPRReport";
@@ -22,23 +22,39 @@ const Index = () => {
   const [showDashboard, setShowDashboard] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [metrics, setMetrics] = useState<BankMetrics[]>([]);
-  const [dataSource, setDataSource] = useState<"live" | "mock">("live");
+  const [dataSource, setDataSource] = useState<"live" | "cache" | "mock" | null>(null);
+  const [isUbprLoading, setIsUbprLoading] = useState(false);
+  const [ubprError, setUbprError] = useState<string | null>(null);
   const [analysisReady, setAnalysisReady] = useState(false);
   const [activeTab, setActiveTab] = useState("ubpr");
   const [marketIntelData, setMarketIntelData] = useState<MarketIntelData | null>(null);
   const { toast } = useToast();
 
   const selectedBank = subjectBank[0];
-  const narratives = selectedBank ? generateNarrative(selectedBank, metrics.length > 0 ? metrics : generateMockMetrics(selectedBank.rssd)) : [];
+  const narratives = selectedBank ? generateNarrative(selectedBank, metrics) : [];
 
-  const handleNavigate = (tab: string) => {
+  const handleNavigate = async (tab: string) => {
     if (!selectedBank) return;
-    const mockData = generateMockMetrics(selectedBank.rssd);
-    setMetrics(mockData);
-    setDataSource("live");
-    setAnalysisReady(true);
+
     setActiveTab(tab);
-    setShowDashboard(true);
+    setUbprError(null);
+    setIsUbprLoading(true);
+
+    try {
+      const result = await fetchUBPR(selectedBank.rssd, selectedBank.name);
+      setMetrics(result.metrics);
+      setDataSource(result.source);
+      setAnalysisReady(true);
+      setShowDashboard(true);
+    } catch (error) {
+      console.error('UBPR fetch failed:', error);
+      setUbprError(error instanceof Error ? error.message : 'Failed to load UBPR data');
+      setMetrics([]);
+      setDataSource('mock');
+      setShowDashboard(true);
+    } finally {
+      setIsUbprLoading(false);
+    }
   };
 
   if (showDashboard && selectedBank) {
@@ -56,15 +72,21 @@ const Index = () => {
               <span className="text-sm text-muted-foreground">
                 {selectedBank.name} | {selectedBank.rssd}
               </span>
-              {dataSource === "live" ? (
+              {isUbprLoading ? (
+                <span className="text-xs text-muted-foreground px-2 py-0.5">Loading data…</span>
+              ) : ubprError ? (
+                <span className="text-xs bg-red-500/10 text-red-600 px-2 py-0.5 rounded-full font-medium">
+                  {ubprError}
+                </span>
+              ) : (dataSource === "live" || dataSource === "cache") ? (
                 <span className="text-xs bg-green-500/10 text-green-600 px-2 py-0.5 rounded-full font-medium">
                   Live FFIEC Data
                 </span>
-              ) : (
+              ) : dataSource === "mock" ? (
                 <span className="text-xs bg-yellow-500/10 text-yellow-600 px-2 py-0.5 rounded-full font-medium">
                   Sample Data
                 </span>
-              )}
+              ) : null}
               <Button variant="outline" size="sm" onClick={() => setShowDashboard(false)}>
                 Change Bank
               </Button>
@@ -74,6 +96,20 @@ const Index = () => {
 
         {/* Dashboard Content */}
         <main className="container py-6">
+          {isUbprLoading && (
+            <div className="flex items-center justify-center py-16 text-muted-foreground text-sm gap-2">
+              <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+              </svg>
+              Loading UBPR data…
+            </div>
+          )}
+          {ubprError && !isUbprLoading && (
+            <div className="mb-4 px-4 py-3 rounded-lg bg-red-500/10 text-red-600 text-sm">
+              {ubprError}
+            </div>
+          )}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
              <TabsList className="grid w-full grid-cols-4 h-11">
               <TabsTrigger value="ubpr" className="gap-2 text-xs">
