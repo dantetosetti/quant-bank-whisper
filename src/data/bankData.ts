@@ -49,6 +49,7 @@ export const generateMockMetrics = (bankRssd: string): BankMetrics[] => {
 };
 
 export const generateNarrative = (bank: BankInfo, metrics: BankMetrics[]): string[] => {
+  if (!metrics || metrics.length < 2) return [];
   const latest = metrics[0];
   const prior = metrics[1];
   const narratives: string[] = [];
