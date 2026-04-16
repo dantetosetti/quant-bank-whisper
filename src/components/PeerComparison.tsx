@@ -53,7 +53,11 @@ const PeerComparison = ({ subjectBank, subjectMetrics, peerBanks }: PeerComparis
         </p>
       </div>
 
-      {peerBanks.length === 0 ? (
+      {!latest ? (
+        <Card className="p-8 text-center">
+          <p className="text-muted-foreground">No metrics data available for {subjectBank.name}.</p>
+        </Card>
+      ) : peerBanks.length === 0 ? (
         <Card className="p-8 text-center">
           <p className="text-muted-foreground">Select peer banks to enable comparison analysis.</p>
         </Card>
