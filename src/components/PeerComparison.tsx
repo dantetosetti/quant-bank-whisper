@@ -33,7 +33,7 @@ const metricRows: MetricRow[] = [
 ];
 
 const PeerComparison = ({ subjectBank, subjectMetrics, peerBanks }: PeerComparisonProps) => {
-  const latest = subjectMetrics[0];
+  const latest = subjectMetrics?.[0];
   const peerData = peerBanks.map(bank => ({
     bank,
     metrics: generateMockMetrics(bank.rssd)[0],
